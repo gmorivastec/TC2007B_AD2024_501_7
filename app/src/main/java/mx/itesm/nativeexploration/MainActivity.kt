@@ -90,4 +90,9 @@ class MainActivity : AppCompatActivity() {
         Log.e("LOGS", "ERROR")
         Log.wtf("LOGS", "WHAT A TERRIBLE FAILURE!")
     }
+
+    fun gotoComposeNavigation(view : View) {
+        var intent = Intent(this, ComposeNavigationActivity::class.java)
+        startActivity(intent)
+    }
 }

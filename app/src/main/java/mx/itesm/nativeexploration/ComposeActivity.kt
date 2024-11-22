@@ -10,8 +10,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -45,7 +47,7 @@ class ComposeActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    InputTest(activity = this)
+                    ListExample()
                 }
             }
         }
@@ -145,6 +147,67 @@ fun HiButton(activity: Activity? = null){
         Toast.makeText(activity, "HI FROM THE OUTSIDE!", Toast.LENGTH_SHORT).show()
     } ) {
         Text(" SAY HI FROM OUTSIDE THE CLASS")
+    }
+}
+
+// let's talk about lists
+
+@Composable
+fun ListExample() {
+    // 2 types of lists with compose
+    // "regular" - we already know size, we load it in batch
+    // "lazy" - elements are shown while loaded
+
+    // the regular one we already know
+    // Column - contained elements will be arranged vertically
+    // when an update occurs the colum will be recomposed (redrawn)
+    /*
+    Column {
+        ListRow(id = R.drawable.puppy1, text = "PUPPY 1")
+        ListRow(id = R.drawable.puppy1, text = "PUPPY 2")
+        ListRow(id = R.drawable.puppy1, text = "PUPPY 3")
+        ListRow(id = R.drawable.puppy1, text = "PUPPY 4")
+        ListRow(id = R.drawable.puppy1, text = "PUPPY 5")
+        DoggyList(names = listOf<String>("doggy 1", "doggy 2", "doggy 3"))
+    }*/
+
+    // lazy column
+    LazyColumn {
+
+        // main difference - we will be using blocks called items
+
+        // can be done individually
+        item {
+            ListRow(id = R.drawable.puppy1, text = "a puppy")
+        }
+
+        // ... or by batch
+        items(3) { i ->
+            ListRow(id = R.drawable.puppy1, text = "puppy $i")
+        }
+    }
+}
+
+@Composable
+fun ListRow(id : Int, text : String) {
+
+    // Row - contained elements will be arranged horizontally
+    Row {
+        Image(
+            painter = painterResource(id = id),
+            contentDescription = "a cute puppy"
+        )
+        Text(text)
+    }
+}
+
+// batch loading data into a column
+@Composable
+fun DoggyList(names : List<String>) {
+    Column {
+        names.forEach { currentName ->
+            ListRow(id = R.drawable.puppy1, text = currentName)
+        }
     }
 }
 
