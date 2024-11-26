@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import mx.itesm.nativeexploration.ui.theme.NativeExplorationTheme
 
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil3.compose.AsyncImage
+import androidx.compose.runtime.livedata.observeAsState
 
 class ComposeNavigationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +42,9 @@ class ComposeNavigationActivity : ComponentActivity() {
 }
 
 @Composable
-fun PuppyInterface() {
+fun PuppyInterface(
+    returnLogic : () -> Unit
+) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -50,14 +54,18 @@ fun PuppyInterface() {
             contentDescription = "a doggy."
         )
 
-        Button( onClick = {} ) {
+        Button( onClick = returnLogic ) {
             Text("return")
         }
     }
 }
 
 @Composable
-fun KittenInterface() {
+fun KittenInterface(
+    returnLogic : () -> Unit,
+    name : String? = "",
+    weight : Float? = 1.0f
+) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -67,12 +75,12 @@ fun KittenInterface() {
             contentDescription = "a kitty."
         )
 
-        Button( onClick = {} ) {
+        Button( onClick = returnLogic ) {
             Text("return")
         }
 
-        Text("name: ")
-        Text("weight: ")
+        Text("name: $name")
+        Text("weight: $weight")
     }
 }
 
@@ -121,21 +129,61 @@ fun Navigation(activity: Activity) {
             ) {
                 MainMenu(
                     kittenInterfaceButtonLogic = {
-                        navController.navigate("kittenInterface")
+                        navController.navigate("kittenInterface/Gatito/3.3")
                     },
                     puppyInterfaceButtonLogic = {
                         navController.navigate("puppyInterface")
                     }
                 )
+
+                // how to get values from save state handle
+                val result = navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.getLiveData<String>("nombreDePerrito")
+                    ?.observeAsState()
+
+                // let - scope function
+                // space where we run code in a particular context
+                // in this case if the value is defined
+                result?.value?.let { name ->
+                    Text("the puppy is called: $name")
+
+                    // if you wish you can purge the values
+                    navController
+                        .currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<String>("nombreDePerrito")
+                }
             }
         }
 
-        composable("kittenInterface"){
-            KittenInterface()
+        composable(
+            "kittenInterface/{name}/{weight}",
+            arguments = listOf(
+                navArgument("name") { type = NavType.StringType},
+                navArgument("weight") { type = NavType.FloatType}
+            )
+        ){ backStackEntry ->
+            KittenInterface(
+                returnLogic = {
+                    navController.popBackStack()
+                },
+                name = backStackEntry.arguments?.getString("name"),
+                weight = backStackEntry.arguments?.getFloat("weight")
+            )
         }
 
         composable("puppyInterface") {
-            PuppyInterface()
+            PuppyInterface(
+                returnLogic = {
+
+                    navController
+                        .previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("nombreDePerrito", "Firualis")
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
